@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>testStuMap</title>
+</head>
+<body>
+{{range $key,$value :=.stus}}
+  {{range $key2,$value2 :=$value}}
+    <p>student {{$key2}} : {{$value2}}</p>
+  {{end}}
+   <br>
+   <br>
+{{else}}
+  no student data
+{{end}}
+</body>
+</html>
