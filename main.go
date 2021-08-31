@@ -5,10 +5,10 @@ import (
 	"goWeb/DBChain"
 	"goWeb/copyDirectory"
 	"goWeb/testZip"
-	"html/template"
 	"io"
 	"net/http"
 	"os"
+	"text/template"
 )
 
 var dataBaseName string
@@ -32,7 +32,34 @@ func testRedirect(w http.ResponseWriter, r *http.Request) {
 //	t := template.Must(template.ParseFiles("index.html"))
 //	t.Execute(w, myMap)
 //}
-//
+func testMap(w http.ResponseWriter, r *http.Request) {
+	myMap := make(map[string]interface{})
+
+	arr := [5]int32{1, 2, 3, 4, 5}
+	myMap["arr"] = arr
+	t:= template.Must(template.New("test.vue").Delims("{[","]}").ParseFiles("test.vue"))
+	os.RemoveAll("pages/test2.vue")
+	file, err := os.OpenFile("pages/test2.vue", os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	t.Execute(file, myMap)
+}
+
+
+func testTableMap(w http.ResponseWriter, r *http.Request) {
+	dataMap := DBChain.GetFinalMap(dataBaseName)
+	t:= template.Must(template.New("testTableMap.vue").Delims("{[","]}").ParseFiles("testTableMap.vue"))
+	os.RemoveAll("pages/testTableMap.vue")
+	file, err := os.OpenFile("pages/testTableMap.vue", os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	t.Execute(file, dataMap)
+}
+
 func ToDownload(w http.ResponseWriter, r *http.Request) {
 	t := template.Must(template.ParseFiles("ToDownload.html"))
 	t.Execute(w, nil)
@@ -77,7 +104,7 @@ func testWholeProcess(w http.ResponseWriter, r *http.Request) {
 	file.Close()
 
 	//compress to zip
-	testZip.ToZip("pages", "./1.zip")
+	testZip.ToZip("pages", "./code.zip")
 
 	//redirect
 	w.Header().Set("location", "http://localhost:8080/ToDownload")
@@ -135,12 +162,12 @@ func getDatabaseName(res http.ResponseWriter, req *http.Request) {
 func main() {
 	//http.HandleFunc("/hello", handler)
 	//http.HandleFunc("/testRedirect", testRedirect)
-	//http.HandleFunc("/testMap", testMap)
+	http.HandleFunc("/testTableMap", testTableMap)
+	http.HandleFunc("/testMap", testMap)
 	//http.HandleFunc("/testWholeProcess", testWholeProcess)
 	http.HandleFunc("/ToDownload", ToDownload)
 	http.HandleFunc("/download", download)
 	http.HandleFunc("/transDatabaseName", getDatabaseName)
 	http.HandleFunc("/testWholeProcess", testWholeProcess)
 	http.ListenAndServe(":8080", nil)
-
 }

@@ -117,6 +117,44 @@ func GetFinalJson(databaseCode string) string {
 	return MapToJson(bigMap)
 }
 
+func GetFinalMap(databaseCode string) map[string]interface{} {
+	token := MakeAccessCode()
+	tablesName := QueryTables(token, databaseCode)
+	bigMap := make(map[string]interface{})
+	var tablesMap []map[string]interface{}
+	bigMap["appCode"]=databaseCode
+	for _, tableName := range tablesName {
+		tableMap := make(map[string]interface{})
+		fields := QueryTableFields(token, databaseCode, tableName)
+		//tableMap := make(map[string]interface{})
+		var fieldMap []map[string]interface{}
+		for _, field := range fields {
+			colMap := make(map[string]interface{})
+			colMap["name"] = field
+			colopts := QueryTableColOpts(token, databaseCode, tableName, field)
+			dataType := QueryTableColDataType(token, databaseCode, tableName, field)
+			if len(colopts) > 0 {
+				colMap["propertyArr"] = colopts
+			}
+			if len(dataType) > 0 {
+				colMap["fieldType"] = dataType
+			}
+			fieldMap = append(fieldMap, colMap)
+		}
+		tableMap["name"] = tableName
+		tableMap["field"] = fieldMap
+
+		tablesMap = append(tablesMap, tableMap)
+	}
+	bigMap["table"] = tablesMap
+	return bigMap
+}
+
+
+
+
+
+
 func MapToJson(myMap map[string]interface{}) string {
 	bytes, err := json.Marshal(myMap)
 	if err != nil {
